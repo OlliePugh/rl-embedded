@@ -2,31 +2,42 @@
 
 // Include the AccelStepper Library
 #include <AccelStepper.h>
+#include <ezButton.h>
 
-// Define pin connections
-const int dirPin = 2;
-const int stepPin = 3;
+#define BOTTOM_LIMIT_PIN 6
+#define TOP_LIMIT_PIN 8
+#define DIRECTION_PIN 2
+#define STEP_PIN 3
+#define MOTOR_INTERFACE_TYPE 1
+#define DEBOUNCE_TIME 50
+#define STEPPER_SPEED 500
 
-// Define motor interface type
-#define motorInterfaceType 1
+ezButton bottomLimit(BOTTOM_LIMIT_PIN);  
+ezButton topLimit(TOP_LIMIT_PIN);  
+AccelStepper stepper(MOTOR_INTERFACE_TYPE, STEP_PIN, DIRECTION_PIN);
 
-// Creates an instance
-AccelStepper myStepper(motorInterfaceType, stepPin, dirPin);
+boolean moveUp = true;
 
 void setup() {
-  // set the maximum speed, acceleration factor,
-  // initial speed and the target position
-  myStepper.setMaxSpeed(1000);
-  myStepper.setAcceleration(50);
-  myStepper.setSpeed(200);
-  myStepper.moveTo(200);
+  Serial.begin(9600);
+  pinMode(12, INPUT_PULLUP);  // TO ACT AS MASTER FOR NOW
+  bottomLimit.setDebounceTime(DEBOUNCE_TIME); // set debounce time to 50 milliseconds
+  topLimit.setDebounceTime(DEBOUNCE_TIME);
+  stepper.setMaxSpeed(500);
 }
 
 void loop() {
-  // Change direction once the motor reaches target position
-  if (myStepper.distanceToGo() == 0) 
-    myStepper.moveTo(-myStepper.currentPosition());
+  bottomLimit.loop();
+  topLimit.loop();
 
-  // Move the motor one step
-  myStepper.run();
+  moveUp = digitalRead(12);
+
+  if (moveUp && topLimit.getState() == HIGH) {  // desired point is top and not already there
+    stepper.setSpeed(-STEPPER_SPEED);
+    stepper.runSpeed();
+  }
+  else if (!moveUp && bottomLimit.getState() == HIGH) {  // desired point is bottom and is not already there
+    stepper.setSpeed(STEPPER_SPEED);
+    stepper.runSpeed();
+  }
 }
