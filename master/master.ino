@@ -1,13 +1,13 @@
 #include <ArduinoJson.h>
 
-#define CAR_1_FORWARD 11
-#define CAR_1_RIGHT 9
-#define CAR_1_BACKWARD 8
-#define CAR_1_LEFT 10
-#define CAR_2_FORWARD 2
-#define CAR_2_RIGHT 2
-#define CAR_2_BACKWARD 2
-#define CAR_2_LEFT 2
+#define CAR_1_FORWARD 10
+#define CAR_1_RIGHT 8
+#define CAR_1_BACKWARD 11 
+#define CAR_1_LEFT 9
+#define CAR_2_FORWARD 4
+#define CAR_2_RIGHT 6
+#define CAR_2_BACKWARD 7
+#define CAR_2_LEFT 5
 
 // order is N E S W
 DynamicJsonDocument doc(1024);
@@ -64,10 +64,10 @@ void inGameState() {
       // (we must use as<T>() to resolve the ambiguity)
 
       for (int i = 0; i < sizeof(carStates)/sizeof(carStates[0]); i++) {
-        carStates[0][0] = docArray[0]["N"].as<boolean>();
-        carStates[0][1] = docArray[0]["E"].as<boolean>();
-        carStates[0][2] = docArray[0]["S"].as<boolean>();
-        carStates[0][3] = docArray[0]["W"].as<boolean>();
+        carStates[i][0] = docArray[i]["N"].as<boolean>();
+        carStates[i][1] = docArray[i]["E"].as<boolean>();
+        carStates[i][2] = docArray[i]["S"].as<boolean>();
+        carStates[i][3] = docArray[i]["W"].as<boolean>();
       }
     } 
     else {
