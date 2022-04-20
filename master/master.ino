@@ -9,10 +9,6 @@
 #define CAR_2_BACKWARD 7
 #define CAR_2_LEFT 5
 
-// order is N E S W
-DynamicJsonDocument doc(1024);
-
-
 String directionArray[4] = {"N", "E", "S", "W"};  // has to be strings and not chars as arduino json screams at me
 short carControls[2][4] = {{CAR_1_FORWARD, CAR_1_RIGHT, CAR_1_BACKWARD, CAR_1_LEFT}, {CAR_2_FORWARD, CAR_2_RIGHT, CAR_2_BACKWARD, CAR_2_LEFT}};
 bool carStates[2][4] = {{false, false, false, false}, {false, false, false, false}};
@@ -23,7 +19,7 @@ States state = IN_GAME;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(57600);
   while (!Serial) continue;
   Serial.println("Starting Game Master Controller");
 
@@ -48,7 +44,7 @@ void loop() {
  delay(10);
 }
 
-//[{"N":false,"E":false,"S":false,"W":false},{"N":false,"E":false,"S":false,"W":false}]
+//q
 void inGameState() {
   
   // read for any controller updates
@@ -57,18 +53,13 @@ void inGameState() {
     StaticJsonDocument<300> doc;
     DeserializationError err = deserializeJson(doc, Serial);
 
-    JsonArray docArray = doc.as<JsonArray>();
-
     if (err == DeserializationError::Ok) {
-      // Print the values
-      // (we must use as<T>() to resolve the ambiguity)
+      String event = doc["event"];
 
-      for (int i = 0; i < sizeof(carStates)/sizeof(carStates[0]); i++) {
-        carStates[i][0] = docArray[i]["N"].as<boolean>();
-        carStates[i][1] = docArray[i]["E"].as<boolean>();
-        carStates[i][2] = docArray[i]["S"].as<boolean>();
-        carStates[i][3] = docArray[i]["W"].as<boolean>();
+      if (event == "controls") {
+        controlStateEvent(doc);
       }
+
     } 
     else {
       // Print error to the "debug" serial port
@@ -79,6 +70,16 @@ void inGameState() {
       while (Serial.available() > 0)
         Serial.read();
     }
+  }
+}
+
+void controlStateEvent(StaticJsonDocument<300> &doc) {
+  JsonArray docArray = doc["data"].as<JsonArray>();
+  for (int i = 0; i < sizeof(carStates)/sizeof(carStates[0]); i++) {
+    carStates[i][0] = docArray[i]["N"].as<boolean>();
+    carStates[i][1] = docArray[i]["E"].as<boolean>();
+    carStates[i][2] = docArray[i]["S"].as<boolean>();
+    carStates[i][3] = docArray[i]["W"].as<boolean>();
   }
 }
 
