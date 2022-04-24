@@ -9,9 +9,17 @@
 #define CAR_2_BACKWARD 7
 #define CAR_2_LEFT 5
 
+#define LIFT 13
+
+#define PHOTORESISTOR_1 0
+#define PHOTORESISTOR_2 1
+#define LASER_BROKE_THRESHOLD 400  // if new value is half of the previous consider changed
+
 String directionArray[4] = {"N", "E", "S", "W"};  // has to be strings and not chars as arduino json screams at me
 short carControls[2][4] = {{CAR_1_FORWARD, CAR_1_RIGHT, CAR_1_BACKWARD, CAR_1_LEFT}, {CAR_2_FORWARD, CAR_2_RIGHT, CAR_2_BACKWARD, CAR_2_LEFT}};
 bool carStates[2][4] = {{false, false, false, false}, {false, false, false, false}};
+
+boolean liftDown = false;
 
 enum States { IN_GAME };
 
@@ -28,9 +36,12 @@ void setup() {
       pinMode(carControls[i][j], OUTPUT);  // set this control to an output
     }
   }
+
+  pinMode(LIFT, OUTPUT);
 }
 
-void loop() {    
+void loop() {
+  digitalWrite(LIFT, liftDown);
   transmitControls();
   
  switch(state) {
@@ -44,9 +55,7 @@ void loop() {
  delay(10);
 }
 
-//q
 void inGameState() {
-  
   // read for any controller updates
   if (Serial.available()) {
     // Allocate the JSON document
@@ -58,6 +67,9 @@ void inGameState() {
 
       if (event == "controls") {
         controlStateEvent(doc);
+      }
+      else if (event == "lift") {
+        liftDown = doc["data"]["liftDown"].as<boolean>();  // change the lifts position
       }
 
     } 
@@ -71,6 +83,14 @@ void inGameState() {
         Serial.read();
     }
   }
+
+  if (analogRead(PHOTORESISTOR_1) < LASER_BROKE_THRESHOLD ) {
+    Serial.println("Broken 1");
+  }
+
+//  if (analogRead(PHOTORESISTOR_2) < LASER_BROKE_THRESHOLD ) {
+//    Serial.println("Broken 2");
+//  }
 }
 
 void controlStateEvent(StaticJsonDocument<300> &doc) {
