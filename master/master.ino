@@ -24,6 +24,7 @@ short carControls[2][4] = {{CAR_1_FORWARD, CAR_1_RIGHT, CAR_1_BACKWARD, CAR_1_LE
 bool carStates[2][4] = {{false, false, false, false}, {false, false, false, false}};
 
 boolean liftDown = false;
+boolean goalDetection = true;
 unsigned long currentMillis;
 unsigned long previousMillis;
 
@@ -99,6 +100,9 @@ void inGameState() {
       else if (event == "lift") {
         liftDown = doc["data"]["liftDown"].as<boolean>();  // change the lifts position
       }
+      else if (event == "goalDetection") {
+        goalDetection = doc["data"]["enabled"].as<boolean>();
+      }
 
     }
     else {
@@ -112,14 +116,16 @@ void inGameState() {
     }
   }
 
-  if (analogRead(PHOTORESISTOR_1) < LASER_BROKEN_THRESHOLD_1) {
-    endMatch(1);
-    return;  // no longer in this game play state so go back to loop
-  }
+  if (goalDetection) {
+    if (analogRead(PHOTORESISTOR_1) < LASER_BROKEN_THRESHOLD_1) {
+      endMatch(1);
+      return;  // no longer in this game play state so go back to loop
+    }
 
-  if (analogRead(PHOTORESISTOR_2) < LASER_BROKEN_THRESHOLD_2) {
-    endMatch(2);
-    return;
+    if (analogRead(PHOTORESISTOR_2) < LASER_BROKEN_THRESHOLD_2) {
+      endMatch(2);
+      return;
+    }
   }
 }
 
